@@ -62,7 +62,7 @@ beautifulsoup4==4.14.3
     #   nbconvert
 bibtexparser==1.4.4
     # via pymatgen-core
-black==26.3.1
+black==26.5.1
     # via crystal_toolkit (pyproject.toml)
 blake3==1.0.8
     # via emmet-core
@@ -74,9 +74,9 @@ boltztrap2==25.3.1
     # via
     #   crystal_toolkit (pyproject.toml)
     #   ifermi
-boto3==1.43.8
+boto3==1.43.9
     # via mp-api
-botocore==1.43.8
+botocore==1.43.9
     # via
     #   boto3
     #   s3transfer
@@ -101,7 +101,7 @@ charset-normalizer==3.4.7
     # via requests
 choreographer==1.3.0
     # via kaleido
-click==8.3.3
+click==8.4.0
     # via
     #   black
     #   dask
@@ -151,11 +151,11 @@ dataclass-wizard==0.39.1
     # via dash-extensions
 debugpy==1.8.20
     # via ipykernel
-decorator==5.2.1
+decorator==5.3.1
     # via ipython
 defusedxml==0.7.1
     # via nbconvert
-deltalake==1.5.1
+deltalake==1.6.0
     # via mp-api
 dephell==0.8.3
     # via crystal_toolkit (pyproject.toml)
@@ -447,7 +447,7 @@ mistune==3.2.1
     # via
     #   m2r
     #   nbconvert
-monty==2026.2.18
+monty==2026.5.18
     # via
     #   emmet-core
     #   ifermi
@@ -475,7 +475,7 @@ multiprocess==0.70.19
     # via dash
 mypy-extensions==1.1.0
     # via black
-narwhals==2.21.0
+narwhals==2.21.2
     # via plotly
 nbclassic==1.3.3
     # via
@@ -615,8 +615,10 @@ pexpect==4.9.0
     # via
     #   dephell-shells
     #   ipython
-phonopy==3.5.1
+phonopy==4.0.1
     # via crystal_toolkit (pyproject.toml)
+phonors==0.1.1
+    # via phonopy
 pillow==12.2.0
     # via
     #   imageio
@@ -629,7 +631,7 @@ platformdirs==4.9.6
     #   jupyter-core
     #   python-discovery
     #   virtualenv
-playwright==1.59.0
+playwright==1.60.0
     # via
     #   crystal_toolkit (pyproject.toml)
     #   pytest-playwright
@@ -710,7 +712,7 @@ pygments==2.20.0
     #   nbconvert
     #   pytest
     #   sphinx
-pylops==2.6.0
+pylops==2.7.0
     # via py4dstem
 pymatgen==2026.5.4
     # via
@@ -721,7 +723,7 @@ pymatgen==2026.5.4
     #   mp-api
     #   pymatgen-io-validation
     #   robocrys
-pymatgen-core==2026.4.16
+pymatgen-core==2026.5.17
     # via pymatgen
 pymatgen-io-validation==0.1.2
     # via emmet-core
@@ -744,7 +746,7 @@ pytest-base-url==2.1.0
     # via pytest-playwright
 pytest-cov==7.1.0
     # via crystal_toolkit (pyproject.toml)
-pytest-playwright==0.7.2
+pytest-playwright==0.8.0
     # via crystal_toolkit (pyproject.toml)
 python-dateutil==2.9.0.post0
     # via
