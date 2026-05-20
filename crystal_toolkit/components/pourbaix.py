@@ -905,9 +905,9 @@ class PourbaixDiagramComponent(MPComponent):
 
             self.logger.debug(
                 f"Generated pourbaix diagram with {len(pourbaix_entries)} entries.\n",
-                f"{json.dumps(heatmap_entry.as_dict())}\n",
-                f"{json.dumps(conc_dict)}\n",
-                f"{json.dumps(comp_dict)}",
+                f"{json.dumps(heatmap_entry.as_dict()) if heatmap_entry else ''}\n",
+                f"{json.dumps(conc_dict) if conc_dict else ''}\n",
+                f"{json.dumps(comp_dict) if comp_dict else ''}",
             )
 
             figure = self.get_figure(
