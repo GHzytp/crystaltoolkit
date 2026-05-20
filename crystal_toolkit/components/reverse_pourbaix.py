@@ -44,6 +44,12 @@ DEFAULT_CUTOFF = 0.2
 CUTOFF_RANGE = [0.1, 0.5]
 CUTOFF_STEP = 0.1
 
+# Ion concentration options (mol/L) for the dummy dropdown. Materials Project
+# default is 1e-6 M; the others span the practical range used in literature.
+ION_CONCENTRATION_OPTIONS = [1e-8, 1e-6, 1e-4, 1e-2, 1.0]
+DEFAULT_ION_CONCENTRATION = 1e-6
+
+DEFAULT_FILTER_SOLIDS = True
 
 class ReversePourbaixDiagramComponent(MPComponent):
     """Component for displaying a reverse Pourbaix diagram.
@@ -56,6 +62,8 @@ class ReversePourbaixDiagramComponent(MPComponent):
     default_state = frozendict(
         show_water_lines=True,
         stability_cutoff=DEFAULT_CUTOFF,
+        filter_solids=DEFAULT_FILTER_SOLIDS,
+        ion_concentration=DEFAULT_ION_CONCENTRATION,
     )
 
     default_plot_style = frozendict(
@@ -313,6 +321,50 @@ class ReversePourbaixDiagramComponent(MPComponent):
                         "Higher cutoffs include progressively more metastable phases."
                     ),
                 ),
+                self.get_bool_input(
+                    kwarg_label="filter_solids",
+                    default=self.default_state["filter_solids"],
+                    label="Filter Solid Phases",
+                    help_str=(
+                        "When enabled, only solid phases that are stable on the "
+                        "compositional phase diagram are included in the Pourbaix "
+                        "analysis. Highly oxidized or reduced phases that may appear "
+                        "in experiments due to kinetic limitations on oxygen or "
+                        "hydrogen evolution are excluded — these are not truly "
+                        "thermodynamically stable and are often overstabilized by "
+                        "DFT errors. Including only stable solid phases generally "
+                        "yields the most accurate Pourbaix diagrams. "
+                        "(Currently a placeholder — does not affect the diagram.)"
+                    ),
+                ),
+                html.Div(
+                    [
+                        html.Label(
+                            "Ion Concentration (mol/L)",
+                            className="mpc-label",
+                            style={"fontWeight": "bold"},
+                        ),
+                        dcc.Dropdown(
+                            id=self.get_kwarg_id("ion_concentration"),
+                            options=[
+                                {"label": f"{c:.0e} M", "value": c}
+                                for c in ION_CONCENTRATION_OPTIONS
+                            ],
+                            value=self.default_state["ion_concentration"],
+                            clearable=False,
+                            style={"maxWidth": "240px"},
+                        ),
+                        html.P(
+                            "Activity of dissolved ionic species used to construct the "
+                            "Pourbaix diagram. Lower concentrations expand the stability "
+                            "regions of solid phases. (Currently a placeholder — does "
+                            "not affect the diagram.)",
+                            className="mpc-help",
+                            style={"fontSize": "0.85em", "marginTop": "0.25rem"},
+                        ),
+                    ],
+                    style={"marginTop": "1rem"},
+                ),
             ]
         )
 
@@ -338,7 +390,7 @@ class ReversePourbaixDiagramComponent(MPComponent):
             Input(self.get_kwarg_id("show_water_lines"), "value"),
             Input(self.get_kwarg_id("stability_cutoff"), "value"),
         )
-        def update_figure(heatmap_json, show_water_lines, stability_cutoff):
+        def update_figure(heatmap_json, show_water_lines, stability_cutoff): # some options ignored for now
             if not heatmap_json:
                 raise PreventUpdate
 
