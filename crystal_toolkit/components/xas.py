@@ -23,7 +23,10 @@ class XASComponent(MPComponent):
 
     default_xas_layout = frozendict(
         xaxis={
-            "title": "Energy (eV)",
+            "title": {
+                "text": "Energy (eV)",
+                "font": {"size": 16.0},
+            },
             "anchor": "y",
             "mirror": "ticks",
             "nticks": 8,
@@ -32,12 +35,14 @@ class XASComponent(MPComponent):
             "side": "bottom",
             "tickfont": {"size": 16.0},
             "ticks": "inside",
-            "titlefont": {"size": 16.0},
             "type": "linear",
             "zeroline": False,
         },
         yaxis={
-            "title": "Absorption Coeff, μ (a.u.)",
+            "title": {
+                "text": "Absorption Coeff, μ (a.u.)",
+                "font": {"size": 16.0},
+            },
             "anchor": "x",
             "mirror": "ticks",
             "nticks": 7,
@@ -46,7 +51,6 @@ class XASComponent(MPComponent):
             "side": "left",
             "tickfont": {"size": 16.0},
             "ticks": "inside",
-            "titlefont": {"size": 16.0},
             "type": "linear",
             "zeroline": False,
         },
