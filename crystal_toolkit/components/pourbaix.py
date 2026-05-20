@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import re
 
@@ -905,9 +904,6 @@ class PourbaixDiagramComponent(MPComponent):
 
             self.logger.debug(
                 f"Generated pourbaix diagram with {len(pourbaix_entries)} entries."
-                f"{'\n' + json.dumps(heatmap_entry.as_dict()) if heatmap_entry else ''}"
-                f"{'\n' + json.dumps(conc_dict) if conc_dict else ''}"
-                f"{'\n' + json.dumps(comp_dict) if comp_dict else ''}"
             )
 
             figure = self.get_figure(
