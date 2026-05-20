@@ -337,33 +337,20 @@ class ReversePourbaixDiagramComponent(MPComponent):
                         "(Currently a placeholder — does not affect the diagram.)"
                     ),
                 ),
-                html.Div(
-                    [
-                        html.Label(
-                            "Ion Concentration (mol/L)",
-                            className="mpc-label",
-                            style={"fontWeight": "bold"},
-                        ),
-                        dcc.Dropdown(
-                            id=self.get_kwarg_id("ion_concentration"),
-                            options=[
-                                {"label": f"{c:.0e} M", "value": c}
-                                for c in ION_CONCENTRATION_OPTIONS
-                            ],
-                            value=self.default_state["ion_concentration"],
-                            clearable=False,
-                            style={"maxWidth": "240px"},
-                        ),
-                        html.P(
-                            "Activity of dissolved ionic species used to construct the "
-                            "Pourbaix diagram. Lower concentrations expand the stability "
-                            "regions of solid phases. (Currently a placeholder — does "
-                            "not affect the diagram.)",
-                            className="mpc-help",
-                            style={"fontSize": "0.85em", "marginTop": "0.25rem"},
-                        ),
+                self.get_choice_input(
+                    kwarg_label="ion_concentration",
+                    default=self.default_state["ion_concentration"],
+                    options=[
+                        {"label": f"{c:.0e} M", "value": c}
+                        for c in ION_CONCENTRATION_OPTIONS
                     ],
-                    style={"marginTop": "1rem"},
+                    label="Ion Concentration (mol/L)",
+                    help_str=(
+                        "Activity of dissolved ionic species used to construct the "
+                        "Pourbaix diagram, applied uniformly to all elements. Lower "
+                        "concentrations expand the stability regions of solid phases. "
+                        "(Currently a placeholder — does not affect the diagram.)"
+                    ),
                 ),
             ]
         )
