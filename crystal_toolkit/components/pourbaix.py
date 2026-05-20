@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
 
@@ -902,12 +903,11 @@ class PourbaixDiagramComponent(MPComponent):
                 filter_solids=kwargs["filter_solids"],
             )
 
-            self.logger.debug(  # noqa: PLE1205
-                "Generated pourbaix diagram",
-                len(pourbaix_entries),
-                heatmap_entry,
-                conc_dict,
-                comp_dict,
+            self.logger.debug(
+                f"Generated pourbaix diagram with {len(pourbaix_entries)} entries.\n",
+                f"{json.dumps(heatmap_entry.as_dict())}\n",
+                f"{json.dumps(conc_dict)}\n",
+                f"{json.dumps(comp_dict)}",
             )
 
             figure = self.get_figure(
