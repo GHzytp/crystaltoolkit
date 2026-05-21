@@ -640,10 +640,9 @@ class PourbaixDiagramComponent(MPComponent):
                     if mpid_wo_function in mat_detials:
                         structure_text = mat_detials[mpid_wo_function]["structure_text"]
                         crystal_system = mat_detials[mpid_wo_function]["crystal_system"]
+                        _mpid = mat_detials[mpid_wo_function]["_mpid"]
 
-                        label_text_list = [
-                            f"{formula} ({mpid_wo_function}, {functional}) \n"
-                        ]
+                        label_text_list = [f"{formula} ({_mpid}, {functional}) \n"]
                         if structure_text:
                             label_text_list.append(
                                 " - Prototype: " + structure_text + "\n"
