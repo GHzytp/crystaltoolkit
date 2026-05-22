@@ -36,7 +36,10 @@ class PhaseDiagramComponent(MPComponent):
     # Default plot layouts for Binary (2), Ternary (3), Quaternary (4) phase diagrams
     default_binary_plot_style = frozendict(
         xaxis={
-            "title": "Fraction",
+            "title": {
+                "text": "Fraction",
+                "font": {"color": "#000000", "size": 24.0},
+            },
             "anchor": "y",
             "mirror": "ticks",
             "nticks": 8,
@@ -45,12 +48,14 @@ class PhaseDiagramComponent(MPComponent):
             "side": "bottom",
             "tickfont": {"size": 16.0},
             "ticks": "inside",
-            "titlefont": {"color": "#000000", "size": 24.0},
             "type": "linear",
             "zeroline": False,
         },
         yaxis={
-            "title": "Formation energy (eV/fu)",
+            "title": {
+                "text": "Formation energy (eV/fu)",
+                "font": {"color": "#000000", "size": 24.0},
+            },
             "anchor": "x",
             "mirror": "ticks",
             "nticks": 7,
@@ -59,7 +64,6 @@ class PhaseDiagramComponent(MPComponent):
             "side": "left",
             "tickfont": {"size": 16.0},
             "ticks": "inside",
-            "titlefont": {"color": "#000000", "size": 24.0},
             "type": "linear",
             "zeroline": False,
         },
