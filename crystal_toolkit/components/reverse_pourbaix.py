@@ -51,6 +51,7 @@ DEFAULT_ION_CONCENTRATION = 1e-6
 
 DEFAULT_FILTER_SOLIDS = True
 
+
 class ReversePourbaixDiagramComponent(MPComponent):
     """Component for displaying a reverse Pourbaix diagram.
 
@@ -377,7 +378,9 @@ class ReversePourbaixDiagramComponent(MPComponent):
             Input(self.get_kwarg_id("show_water_lines"), "value"),
             Input(self.get_kwarg_id("stability_cutoff"), "value"),
         )
-        def update_figure(heatmap_json, show_water_lines, stability_cutoff): # some options ignored for now
+        def update_figure(
+            heatmap_json, show_water_lines, stability_cutoff
+        ):  # some options ignored for now
             if not heatmap_json:
                 raise PreventUpdate
 

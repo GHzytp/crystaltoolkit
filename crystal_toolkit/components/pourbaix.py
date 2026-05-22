@@ -769,8 +769,9 @@ class PourbaixDiagramComponent(MPComponent):
             # default_comp — use prefilled ratio from URL if supplied and length
             # matches the resolved element list, otherwise fall back to all-equal.
             if prefill_ratio and len(prefill_ratio) == len(elements):
-                default_comp = ":".join(str(int(r)) if r == int(r) else str(r)
-                                        for r in prefill_ratio)
+                default_comp = ":".join(
+                    str(int(r)) if r == int(r) else str(r) for r in prefill_ratio
+                )
             else:
                 default_comp = ":".join(["1" for _ in elements])
 
