@@ -683,10 +683,15 @@ class PourbaixDiagramComponent(MPComponent):
             Output(self.id("comp-conc-btn"), "children"),
             Output(self.id("comp-conc-btn"), "style"),
             Input(self.id(), "data"),
+            # Optional: prefilled ratio from a parent app linking via
+            # `links={"prefill-ratio": parent_app.id("prefill-ratio")}`.
+            # If not linked, falls back to equal ratios.
+            State(self.id("prefill-ratio"), "data"),
             prevent_initial_call=True,
         )
         def update_element_specific_sliders(
             entries,
+            prefill_ratio,
         ):
             """
             When pourbaix entries input, add concentration and composition options
@@ -706,7 +711,7 @@ class PourbaixDiagramComponent(MPComponent):
 
             conc_inputs = []
 
-            for element in sorted(elements):
+            for element in sorted(elements, key=lambda e: e.symbol):
                 conc_input = PourbaixDiagramComponent.create_centered_object(
                     self.get_numerical_input(
                         f"conc-{element}",
@@ -755,10 +760,19 @@ class PourbaixDiagramComponent(MPComponent):
                 }
 
             # elements store
-            elements = [element.symbol for element in elements]
+            # Sort alphabetically for deterministic ordering across page loads.
+            # This order is the contract between the composition title display,
+            # the comp-text positional parsing in make_figure, and any URL-based
+            # ratio prefill from the reverse-Pourbaix app.
+            elements = sorted(element.symbol for element in elements)
 
-            # default_comp
-            default_comp = ":".join(["1" for _ in elements])
+            # default_comp — use prefilled ratio from URL if supplied and length
+            # matches the resolved element list, otherwise fall back to all-equal.
+            if prefill_ratio and len(prefill_ratio) == len(elements):
+                default_comp = ":".join(str(int(r)) if r == int(r) else str(r)
+                                        for r in prefill_ratio)
+            else:
+                default_comp = ":".join(["1" for _ in elements])
 
             # composition title
             title = "💡 Composition of " + ":".join(elements)
