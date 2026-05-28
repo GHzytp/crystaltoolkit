@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 __author__ = "Leo Karlsson"
 
 # Grid and display constants
-HEIGHT = 550
-WIDTH = 700
+#HEIGHT = 550
+#WIDTH = 700
 MIN_PH = 0
 MAX_PH = 14
 MIN_V = -2
@@ -83,7 +83,7 @@ class ReversePourbaixDiagramComponent(MPComponent):
             "range": [MIN_PH, MAX_PH],
         },
         yaxis={
-            "title": "Potential (V vs. SHE)",
+            "title": "Potential (V vs. SHE TEST)",
             "anchor": "x",
             "mirror": "ticks",
             "range": [MIN_V, MAX_V],
@@ -101,11 +101,12 @@ class ReversePourbaixDiagramComponent(MPComponent):
         },
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        height=HEIGHT,
-        width=WIDTH,
+        autosize=True,
         hovermode="closest",
         showlegend=False,
         margin=dict(l=80, b=70, t=10, r=20),
+        # height=HEIGHT,
+        # width=WIDTH,
     )
 
     empty_plot_style = frozendict(
@@ -268,15 +269,14 @@ class ReversePourbaixDiagramComponent(MPComponent):
             [
                 dcc.Graph(
                     id=self.id("heatmap"),
-                    figure=go.Figure(
-                        layout={**ReversePourbaixDiagramComponent.empty_plot_style}
-                    ),
+                    figure=go.Figure(layout={**ReversePourbaixDiagramComponent.empty_plot_style}),
                     responsive=True,
-                    config={"displayModeBar": False, "displaylogo": False},
+                    config={"displayModeBar": False, "displaylogo": False, "responsive": True},
+                    style={"height": "100%", "width": "100%"},
                 ),
             ],
-            # style={"minHeight": "500px"},
             id=self.id("graph-panel"),
+            style={"height": "100%", "display": "flex", "flexDirection": "column"},
         )
 
         # Holds the list of mp_ids stable at the most recently clicked cell.
