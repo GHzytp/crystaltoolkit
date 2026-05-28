@@ -83,7 +83,7 @@ class ReversePourbaixDiagramComponent(MPComponent):
             "range": [MIN_PH, MAX_PH],
         },
         yaxis={
-            "title": "Potential (V vs. SHE TEST)",
+            "title": "Potential (V vs. SHE)",
             "anchor": "x",
             "mirror": "ticks",
             "range": [MIN_V, MAX_V],
@@ -272,11 +272,11 @@ class ReversePourbaixDiagramComponent(MPComponent):
                     figure=go.Figure(layout={**ReversePourbaixDiagramComponent.empty_plot_style}),
                     responsive=True,
                     config={"displayModeBar": False, "displaylogo": False, "responsive": True},
-                    style={"height": "100%", "width": "100%"},
+                    style={"flex": "1 1 auto", "height": "100%", "width": "100%"}
                 ),
             ],
             id=self.id("graph-panel"),
-            style={"height": "100%", "display": "flex", "flexDirection": "column"},
+            style={"display": "flex", "flexDirection": "column", "flex": "1 1 auto"},
         )
 
         # Holds the list of mp_ids stable at the most recently clicked cell.
