@@ -31,8 +31,14 @@ logger = logging.getLogger(__name__)
 __author__ = "Leo Karlsson"
 
 # Grid and display constants
-#HEIGHT = 550
-#WIDTH = 700
+# Height of the heatmap graph. A *definite* height (rather than height:100%)
+# is important: the graph is embedded in the web app inside a dcc.Loading
+# wrapper, which has no height of its own and so breaks any height:100% chain.
+# With autosize and no definite height, each redraw (e.g. moving the stability
+# cutoff) resolved to a different height and the white tile flickered between
+# full height and ~450px. A fixed height makes every redraw deterministic.
+HEATMAP_HEIGHT = "70vh"
+# WIDTH = 700
 MIN_PH = 0
 MAX_PH = 14
 MIN_V = -2
@@ -105,8 +111,9 @@ class ReversePourbaixDiagramComponent(MPComponent):
         hovermode="closest",
         showlegend=False,
         margin=dict(l=80, b=70, t=10, r=20),
-        # height=HEIGHT,
-        # width=WIDTH,
+        # height intentionally not set here: the height is fixed via the
+        # dcc.Graph CSS style (HEATMAP_HEIGHT) so Plotly's responsive autosize
+        # has a definite container height to fill on every redraw.
     )
 
     empty_plot_style = frozendict(
@@ -269,14 +276,24 @@ class ReversePourbaixDiagramComponent(MPComponent):
             [
                 dcc.Graph(
                     id=self.id("heatmap"),
-                    figure=go.Figure(layout={**ReversePourbaixDiagramComponent.empty_plot_style}),
+                    figure=go.Figure(
+                        layout={**ReversePourbaixDiagramComponent.empty_plot_style}
+                    ),
                     responsive=True,
-                    config={"displayModeBar": False, "displaylogo": False, "responsive": True},
-                    style={"flex": "1 1 auto", "height": "100%", "width": "100%"}
+                    config={
+                        "displayModeBar": False,
+                        "displaylogo": False,
+                        "responsive": True,
+                    },
+                    # Definite height (see HEATMAP_HEIGHT note above). This used
+                    # to be height:100% + flex fill, which depends on a definite-
+                    # height ancestor that the web app's dcc.Loading wrapper does
+                    # not provide, so the autosize height was non-deterministic
+                    # and the tile flickered on each cutoff redraw.
+                    style={"height": HEATMAP_HEIGHT, "width": "100%"},
                 ),
             ],
             id=self.id("graph-panel"),
-            style={"display": "flex", "flexDirection": "column", "flex": "1 1 auto"},
         )
 
         # Holds the list of mp_ids stable at the most recently clicked cell.
