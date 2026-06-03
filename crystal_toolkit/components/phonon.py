@@ -1008,6 +1008,9 @@ class PhononBandstructureAndDosComponent(MPComponent):
             Output(self.id("ph-bsdos-graph"), "figure", allow_duplicate=True),
             Output(self.id("zone"), "data"),
             Output(self.id("table"), "children"),
+            Output(
+                self.id("animation-button-container"), "style", allow_duplicate=True
+            ),
             Input(self.id("ph_bs"), "data"),
             Input(self.id("ph_dos"), "data"),
             # prevent_intial_call=True,
@@ -1026,7 +1029,9 @@ class PhononBandstructureAndDosComponent(MPComponent):
             summary_dict = self._get_data_list_dict(bs, dos)
             summary_table = get_data_list(summary_dict)
 
-            return figure, zone_scene.to_json(), summary_table
+            if bs.has_eigendisplacements:
+                return figure, zone_scene.to_json(), summary_table, {"display": "flex"}
+            return figure, zone_scene.to_json(), summary_table, {"display": "none"}
 
         @app.callback(
             Output(self.id("ph-bsdos-graph"), "figure", allow_duplicate=True),
@@ -1087,7 +1092,9 @@ class PhononBandstructureAndDosComponent(MPComponent):
         @app.callback(
             Output(self.id("crystal-animation-container"), "children"),
             Output(self.id("crystal-animation-container"), "style"),
-            Output(self.id("animation-button-container"), "style"),
+            Output(
+                self.id("animation-button-container"), "style", allow_duplicate=True
+            ),
             Input(self.id("animation-button"), "n_clicks"),
             prevent_intial_call=True,
         )
