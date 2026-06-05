@@ -181,6 +181,11 @@ class PhononBandstructureAndDosComponent(MPComponent):
             id=self.id("animation-button-container"),
         )
 
+        hints = html.Div(
+            "💡 Zoom in by selecting an area of interest, and double-click to return to the original view. (The q points' labels that appear to overlap at the current scale are actually distinct.)",
+            style={"textAlign": "center"},
+        )
+
         return {
             "graph": graph,
             "convention": convention,
@@ -189,6 +194,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
             "zone": zone,
             "table": summary_table,
             "crystal_animation_button_container": crystal_animation_button_container,
+            "hints": hints,
         }
 
     def _get_animation_panel(self):
@@ -426,6 +432,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
     def layout(self) -> html.Div:
         sub_layouts = self._sub_layouts
         graph = Columns([Column([sub_layouts["graph"]])])
+        hints = Columns([Column([sub_layouts["hints"]])])
         crystal_animation_container = Columns(
             [], id=self.id("crystal-animation-container"), style={"display": "none"}
         )
@@ -453,6 +460,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
         return html.Div(
             [
                 graph,
+                hints,
                 crystal_animation_button_container,
                 crystal_animation_container,
                 controls,
@@ -896,6 +904,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
             tickvals=bs_data["ticks"]["distance"],
             title=dict(text="Wave Vector", font=dict(size=16)),
             zeroline=False,
+            automargin=True,
         )
 
         yaxis_style = dict(
@@ -1008,6 +1017,9 @@ class PhononBandstructureAndDosComponent(MPComponent):
             Output(self.id("ph-bsdos-graph"), "figure", allow_duplicate=True),
             Output(self.id("zone"), "data"),
             Output(self.id("table"), "children"),
+            Output(
+                self.id("animation-button-container"), "style", allow_duplicate=True
+            ),
             Input(self.id("ph_bs"), "data"),
             Input(self.id("ph_dos"), "data"),
             # prevent_intial_call=True,
@@ -1026,7 +1038,9 @@ class PhononBandstructureAndDosComponent(MPComponent):
             summary_dict = self._get_data_list_dict(bs, dos)
             summary_table = get_data_list(summary_dict)
 
-            return figure, zone_scene.to_json(), summary_table
+            if bs.has_eigendisplacements:
+                return figure, zone_scene.to_json(), summary_table, {"display": "flex"}
+            return figure, zone_scene.to_json(), summary_table, {"display": "none"}
 
         @app.callback(
             Output(self.id("ph-bsdos-graph"), "figure", allow_duplicate=True),
@@ -1087,7 +1101,9 @@ class PhononBandstructureAndDosComponent(MPComponent):
         @app.callback(
             Output(self.id("crystal-animation-container"), "children"),
             Output(self.id("crystal-animation-container"), "style"),
-            Output(self.id("animation-button-container"), "style"),
+            Output(
+                self.id("animation-button-container"), "style", allow_duplicate=True
+            ),
             Input(self.id("animation-button"), "n_clicks"),
             prevent_intial_call=True,
         )
