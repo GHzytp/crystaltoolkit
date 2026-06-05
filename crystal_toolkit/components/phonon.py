@@ -181,6 +181,11 @@ class PhononBandstructureAndDosComponent(MPComponent):
             id=self.id("animation-button-container"),
         )
 
+        hints = html.Div(
+            "💡 Zoom in by selecting an area of interest, and double-click to return to the original view. (The q points' labels that appear to overlap at the current scale are actually distinct.)",
+            style={"textAlign": "center"},
+        )
+
         return {
             "graph": graph,
             "convention": convention,
@@ -189,6 +194,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
             "zone": zone,
             "table": summary_table,
             "crystal_animation_button_container": crystal_animation_button_container,
+            "hints": hints,
         }
 
     def _get_animation_panel(self):
@@ -426,6 +432,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
     def layout(self) -> html.Div:
         sub_layouts = self._sub_layouts
         graph = Columns([Column([sub_layouts["graph"]])])
+        hints = Columns([Column([sub_layouts["hints"]])])
         crystal_animation_container = Columns(
             [], id=self.id("crystal-animation-container"), style={"display": "none"}
         )
@@ -453,6 +460,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
         return html.Div(
             [
                 graph,
+                hints,
                 crystal_animation_button_container,
                 crystal_animation_container,
                 controls,
@@ -896,6 +904,7 @@ class PhononBandstructureAndDosComponent(MPComponent):
             tickvals=bs_data["ticks"]["distance"],
             title=dict(text="Wave Vector", font=dict(size=16)),
             zeroline=False,
+            automargin=True,
         )
 
         yaxis_style = dict(
