@@ -30,13 +30,6 @@ logger = logging.getLogger(__name__)
 
 __author__ = "Leo Karlsson"
 
-# Grid and display constants
-# Height of the heatmap graph. A *definite* height (rather than height:100%)
-# is important: the graph is embedded in the web app inside a dcc.Loading
-# wrapper, which has no height of its own and so breaks any height:100% chain.
-# With autosize and no definite height, each redraw (e.g. moving the stability
-# cutoff) resolved to a different height and the white tile flickered between
-# full height and ~450px. A fixed height makes every redraw deterministic.
 HEATMAP_HEIGHT = "70vh"
 # WIDTH = 700
 MIN_PH = 0
@@ -50,13 +43,6 @@ DEFAULT_CUTOFF = 0.2
 CUTOFF_RANGE = [0.1, 0.5]
 CUTOFF_STEP = 0.1
 
-# Ion concentration options (mol/L) for the dummy dropdown. Materials Project
-# default is 1e-6 M; the others span the practical range used in literature.
-ION_CONCENTRATION_OPTIONS = [1e-8, 1e-6, 1e-4, 1e-2, 1.0]
-DEFAULT_ION_CONCENTRATION = 1e-6
-
-DEFAULT_FILTER_SOLIDS = True
-
 
 class ReversePourbaixDiagramComponent(MPComponent):
     """Component for displaying a reverse Pourbaix diagram.
@@ -69,8 +55,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
     default_state = frozendict(
         show_water_lines=True,
         stability_cutoff=DEFAULT_CUTOFF,
-        filter_solids=DEFAULT_FILTER_SOLIDS,
-        ion_concentration=DEFAULT_ION_CONCENTRATION,
     )
 
     default_plot_style = frozendict(
@@ -111,9 +95,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
         hovermode="closest",
         showlegend=False,
         margin=dict(l=80, b=70, t=10, r=20),
-        # height intentionally not set here: the height is fixed via the
-        # dcc.Graph CSS style (HEATMAP_HEIGHT) so Plotly's responsive autosize
-        # has a definite container height to fill on every redraw.
     )
 
     empty_plot_style = frozendict(
@@ -132,8 +113,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
                 Current parquet data is computed with solid filter and default
                 ion concentrations.
         """
-        # TODO: in future, it would be nice if user can disable solid filter and
-        # specify ion concentrations.
         super().__init__(*args, **kwargs)
         self._stability_df: pd.DataFrame | None = None
         if parquet_path is not None:
@@ -285,11 +264,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
                         "displaylogo": False,
                         "responsive": True,
                     },
-                    # Definite height (see HEATMAP_HEIGHT note above). This used
-                    # to be height:100% + flex fill, which depends on a definite-
-                    # height ancestor that the web app's dcc.Loading wrapper does
-                    # not provide, so the autosize height was non-deterministic
-                    # and the tile flickered on each cutoff redraw.
                     style={"height": HEATMAP_HEIGHT, "width": "100%"},
                 ),
             ],
@@ -337,37 +311,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
                         "stable. The recommended value is 0.2 eV/atom, the "
                         "practical metastability threshold used in Karlsson et al. "
                         "Higher cutoffs include progressively more metastable phases."
-                    ),
-                ),
-                self.get_bool_input(
-                    kwarg_label="filter_solids",
-                    default=self.default_state["filter_solids"],
-                    label="Filter Solid Phases",
-                    help_str=(
-                        "When enabled, only solid phases that are stable on the "
-                        "compositional phase diagram are included in the Pourbaix "
-                        "analysis. Highly oxidized or reduced phases that may appear "
-                        "in experiments due to kinetic limitations on oxygen or "
-                        "hydrogen evolution are excluded — these are not truly "
-                        "thermodynamically stable and are often overstabilized by "
-                        "DFT errors. Including only stable solid phases generally "
-                        "yields the most accurate Pourbaix diagrams. "
-                        "(Currently a placeholder — does not affect the diagram.)"
-                    ),
-                ),
-                self.get_choice_input(
-                    kwarg_label="ion_concentration",
-                    default=self.default_state["ion_concentration"],
-                    options=[
-                        {"label": f"{c:.0e} M", "value": c}
-                        for c in ION_CONCENTRATION_OPTIONS
-                    ],
-                    label="Ion Concentration (mol/L)",
-                    help_str=(
-                        "Activity of dissolved ionic species used to construct the "
-                        "Pourbaix diagram, applied uniformly to all elements. Lower "
-                        "concentrations expand the stability regions of solid phases. "
-                        "(Currently a placeholder — does not affect the diagram.)"
                     ),
                 ),
             ]
