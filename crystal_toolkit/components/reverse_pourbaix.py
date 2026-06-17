@@ -149,6 +149,41 @@ class ReversePourbaixDiagramComponent(MPComponent):
         """
         return f"{cutoff:.1f}"
 
+    @staticmethod
+    def load_heatmap_data(path: str | Path) -> dict[str, Any]:
+        """Load heatmap counts from a tidy, long-format parquet (one row per
+        pH/V/cutoff combination, columns "pH", "V", "cutoff", "count") and
+        reshape into the dict `get_heatmap_figure` expects:
+        {"ph_values", "v_values", "cutoffs", "grid"}, where `grid` is a list
+        of {"pH", "V", "counts": {cutoff_str: count}}.
+        """
+        df = pd.read_parquet(path)
+
+        ph_values = sorted(df["pH"].unique().tolist())
+        v_values = sorted(df["V"].unique().tolist(), reverse=True)
+        cutoffs = sorted(df["cutoff"].unique().tolist())
+
+        grid = [
+            {
+                "pH": ph,
+                "V": v,
+                "counts": {
+                    ReversePourbaixDiagramComponent._format_cutoff_key(
+                        float(cutoff)
+                    ): int(count)
+                    for cutoff, count in zip(group["cutoff"], group["count"])
+                },
+            }
+            for (ph, v), group in df.groupby(["pH", "V"], sort=True)
+        ]
+
+        return {
+            "ph_values": ph_values,
+            "v_values": v_values,
+            "cutoffs": cutoffs,
+            "grid": grid,
+        }
+
     def get_stable_mp_ids(self, ph: float, v: float, cutoff: float) -> list[str]:
         """Return mp_ids stable at (pH, V) below the given decomposition-energy cutoff.
 
