@@ -6,8 +6,6 @@ staticmethod. No interactivity. See the Materials Project web integration.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import dash
 from dash import dcc, html
 
@@ -17,10 +15,15 @@ from crystal_toolkit.settings import SETTINGS
 
 app = dash.Dash(assets_folder=SETTINGS.ASSETS_PATH)
 
-# Load pre-computed heatmap data
-DATA_PATH = Path(__file__).parent / "reverse_pourbaix_heatmap.parquet"
+# Load pre-computed heatmap data from the versioned, hive-partitioned S3
+# dataset; filter to one version so multiple versions in the bucket don't
+# get mixed together.
+DATA_PATH = "s3://materialsproject-build/collections/reverse-pourbaix-heatmap/"
+DATA_FILTERS = [("version", "=", "2026-04-13")]
 
-heatmap_data = ReversePourbaixDiagramComponent.load_heatmap_data(DATA_PATH)
+heatmap_data = ReversePourbaixDiagramComponent.load_heatmap_data(
+    DATA_PATH, filters=DATA_FILTERS
+)
 
 # Build the heatmap figure directly — no component, no callbacks.
 figure = ReversePourbaixDiagramComponent.get_heatmap_figure(heatmap_data)

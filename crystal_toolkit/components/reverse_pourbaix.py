@@ -104,20 +104,31 @@ class ReversePourbaixDiagramComponent(MPComponent):
         plot_bgcolor="rgba(0,0,0,0)",
     )
 
-    def __init__(self, parquet_path: str | Path | None = None, *args, **kwargs):
+    def __init__(
+        self,
+        parquet_path: str | Path | None = None,
+        *args,
+        filters: list[tuple] | None = None,
+        **kwargs,
+    ):
         """
         Args:
-            parquet_path: path to the precomputed (pH, V, mp_id, decomposition_energy)
-                parquet file. Loaded once at component construction. If None, the
-                click-to-list functionality is disabled but the heatmap still works.
-                Current parquet data is computed with solid filter and default
-                ion concentrations.
+            parquet_path: path (local or s3://) to the precomputed
+                (pH, V, mp_id, decomposition_energy) parquet data. Loaded once at
+                component construction. If None, the click-to-list functionality
+                is disabled but the heatmap still works. Current parquet data is
+                computed with solid filter and default ion concentrations.
+            filters: optional pyarrow row-filter, e.g.
+                [("version", "=", "2026-04-13")]. Applied via
+                pyarrow.parquet.read_table's `filters` kwarg, so it also works to
+                select a single version out of a hive-partitioned dataset
+                (local or S3).
         """
         super().__init__(*args, **kwargs)
         self._stability_df: pd.DataFrame | None = None
         if parquet_path is not None:
             logger.info("Loading reverse-Pourbaix stability data from %s", parquet_path)
-            df = pq.read_table(parquet_path).to_pandas()
+            df = pq.read_table(parquet_path, filters=filters).to_pandas()
             # Index by (pH, V) for fast cell-click lookups.
             self._stability_df = df.set_index(["pH", "V"]).sort_index()
             logger.info(
@@ -150,14 +161,20 @@ class ReversePourbaixDiagramComponent(MPComponent):
         return f"{cutoff:.1f}"
 
     @staticmethod
-    def load_heatmap_data(path: str | Path) -> dict[str, Any]:
+    def load_heatmap_data(
+        path: str | Path, filters: list[tuple] | None = None
+    ) -> dict[str, Any]:
         """Load heatmap counts from a tidy, long-format parquet (one row per
         pH/V/cutoff combination, columns "pH", "V", "cutoff", "count") and
         reshape into the dict `get_heatmap_figure` expects:
         {"ph_values", "v_values", "cutoffs", "grid"}, where `grid` is a list
         of {"pH", "V", "counts": {cutoff_str: count}}.
+
+        :param path: path (local or s3://) to the parquet data.
+        :param filters: optional pyarrow row-filter, e.g.
+            [("version", "=", "2026-04-13")]; see `__init__` for details.
         """
-        df = pd.read_parquet(path)
+        df = pq.read_table(path, filters=filters).to_pandas()
 
         ph_values = sorted(df["pH"].unique().tolist())
         v_values = sorted(df["V"].unique().tolist(), reverse=True)
