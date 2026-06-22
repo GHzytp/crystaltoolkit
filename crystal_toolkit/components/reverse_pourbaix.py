@@ -12,9 +12,8 @@ stable at each electrochemical condition.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import pandas as pd
 import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Component, Input, Output
@@ -23,6 +22,9 @@ from frozendict import frozendict
 from pymatgen.analysis.pourbaix_diagram import PREFAC
 
 from crystal_toolkit.core.mpcomponent import MPComponent
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
 
     default_plot_style = frozendict(
         xaxis={
-            "title": "pH",
             "anchor": "y",
             "mirror": "ticks",
             "showgrid": False,
@@ -71,7 +72,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
             "range": [MIN_PH, MAX_PH],
         },
         yaxis={
-            "title": "Potential (V vs. SHE)",
             "anchor": "x",
             "mirror": "ticks",
             "range": [MIN_V, MAX_V],
@@ -141,7 +141,7 @@ class ReversePourbaixDiagramComponent(MPComponent):
     @staticmethod
     def _snap_to_grid(ph: float, v: float) -> tuple[int, float]:
         """Snap a clicked (pH, V) point to the precomputed grid keys."""
-        return int(round(ph)), round(v * 2) / 2
+        return round(ph), round(v * 2) / 2
 
     @staticmethod
     def _format_cutoff_key(cutoff: float) -> str:
@@ -387,10 +387,8 @@ class ReversePourbaixDiagramComponent(MPComponent):
             if isinstance(show_water_lines, list):
                 show_water_lines = show_water_lines[0] if show_water_lines else True
 
-            figure = self.get_heatmap_figure(
+            return self.get_heatmap_figure(
                 heatmap_data,
                 stability_cutoff=self._resolve_cutoff(stability_cutoff),
                 show_water_lines=bool(show_water_lines),
             )
-
-            return figure
