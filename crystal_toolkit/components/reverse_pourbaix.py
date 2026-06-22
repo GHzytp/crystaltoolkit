@@ -12,12 +12,10 @@ stable at each electrochemical condition.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
-import pyarrow.parquet as pq
 from dash import dcc, html
 from dash.dependencies import Component, Input, Output
 from dash.exceptions import PreventUpdate
@@ -106,34 +104,27 @@ class ReversePourbaixDiagramComponent(MPComponent):
 
     def __init__(
         self,
-        parquet_path: str | Path | None = None,
+        stability_data: pd.DataFrame | None = None,
         *args,
-        filters: list[tuple] | None = None,
         **kwargs,
     ):
         """
         Args:
-            parquet_path: path (local or s3://) to the precomputed
-                (pH, V, mp_id, decomposition_energy) parquet data. Loaded once at
-                component construction. If None, the click-to-list functionality
-                is disabled but the heatmap still works. Current parquet data is
-                computed with solid filter and default ion concentrations.
-            filters: optional pyarrow row-filter, e.g.
-                [("version", "=", "2026-04-13")]. Applied via
-                pyarrow.parquet.read_table's `filters` kwarg, so it also works to
-                select a single version out of a hive-partitioned dataset
-                (local or S3).
+            stability_data: precomputed (pH, V, mp_id, decomposition_energy)
+                data, e.g. read from a parquet dataset by the caller. Indexed
+                by (pH, V) once at component construction for fast cell-click
+                lookups. If None, the click-to-list functionality is disabled
+                but the heatmap still works. Data is expected to be computed
+                with solid filter and default ion concentrations.
         """
         super().__init__(*args, **kwargs)
         self._stability_df: pd.DataFrame | None = None
-        if parquet_path is not None:
-            logger.info("Loading reverse-Pourbaix stability data from %s", parquet_path)
-            df = pq.read_table(parquet_path, filters=filters).to_pandas()
+        if stability_data is not None:
             # Index by (pH, V) for fast cell-click lookups.
-            self._stability_df = df.set_index(["pH", "V"]).sort_index()
+            self._stability_df = stability_data.set_index(["pH", "V"]).sort_index()
             logger.info(
-                "Loaded %d stability rows across %d cells",
-                len(df),
+                "Indexed %d stability rows across %d cells",
+                len(stability_data),
                 self._stability_df.index.nunique(),
             )
 
@@ -161,21 +152,16 @@ class ReversePourbaixDiagramComponent(MPComponent):
         return f"{cutoff:.1f}"
 
     @staticmethod
-    def load_heatmap_data(
-        path: str | Path, filters: list[tuple] | None = None
-    ) -> dict[str, Any]:
-        """Load heatmap counts from a tidy, long-format parquet (one row per
-        pH/V/cutoff combination, columns "pH", "V", "cutoff", "count") and
-        reshape into the dict `get_heatmap_figure` expects:
-        {"ph_values", "v_values", "cutoffs", "grid"}, where `grid` is a list
-        of {"pH", "V", "counts": {cutoff_str: count}}.
+    def load_heatmap_data(df: pd.DataFrame) -> dict[str, Any]:
+        """Reshape tidy, long-format heatmap counts (one row per pH/V/cutoff
+        combination, columns "pH", "V", "cutoff", "count") into the dict
+        `get_heatmap_figure` expects: {"ph_values", "v_values", "cutoffs",
+        "grid"}, where `grid` is a list of {"pH", "V", "counts": {cutoff_str:
+        count}}.
 
-        :param path: path (local or s3://) to the parquet data.
-        :param filters: optional pyarrow row-filter, e.g.
-            [("version", "=", "2026-04-13")]; see `__init__` for details.
+        :param df: tidy, long-format heatmap-count data, e.g. read from a
+            parquet dataset by the caller.
         """
-        df = pq.read_table(path, filters=filters).to_pandas()
-
         ph_values = sorted(df["pH"].unique().tolist())
         v_values = sorted(df["V"].unique().tolist(), reverse=True)
         cutoffs = sorted(df["cutoff"].unique().tolist())
