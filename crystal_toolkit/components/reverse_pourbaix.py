@@ -129,11 +129,8 @@ class ReversePourbaixDiagramComponent(MPComponent):
             )
 
     @staticmethod
-    def _resolve_cutoff(value: float | list[float] | None) -> float:
-        """Unwrap a slider value (which may be a list) to a float, falling back
-        to the default cutoff."""
-        if isinstance(value, list):
-            value = value[0] if value else DEFAULT_CUTOFF
+    def _resolve_cutoff(value: float | None) -> float:
+        """Unwrap a slider value to a float, falling back to the default cutoff."""
         if value is None:
             return DEFAULT_CUTOFF
         return float(value)
