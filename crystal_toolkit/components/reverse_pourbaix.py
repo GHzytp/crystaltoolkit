@@ -187,22 +187,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
             "grid": grid,
         }
 
-    def get_stable_mp_ids(self, ph: float, v: float, cutoff: float) -> list[str]:
-        """Return mp_ids stable at (pH, V) below the given decomposition-energy cutoff.
-
-        Returns an empty list if the parquet data is not loaded.
-        """
-        if self._stability_df is None:
-            return []
-        ph_key, v_key = self._snap_to_grid(ph, v)
-        try:
-            cell = self._stability_df.loc[(ph_key, v_key)]
-        except KeyError:
-            logger.debug("No stability data for (pH=%s, V=%s)", ph_key, v_key)
-            return []
-        stable = cell[cell["decomposition_energy"] <= cutoff]
-        return stable["mp_id"].tolist()
-
     @staticmethod
     def get_heatmap_figure(
         heatmap_data: dict[str, Any],
