@@ -129,11 +129,11 @@ class ReversePourbaixDiagramComponent(MPComponent):
             )
 
     @staticmethod
-    def _resolve_cutoff(value: float | None) -> float:
-        """Unwrap a slider value to a float, falling back to the default cutoff."""
-        if value is None:
+    def _resolve_cutoff(li: list | None) -> float:
+        """Unwrap MPComponent's get_slider_input output list to a float, falling back to the default cutoff."""
+        if not li:
             return DEFAULT_CUTOFF
-        return float(value)
+        return float(li[0])
 
     @staticmethod
     def _snap_to_grid(ph: float, v: float) -> tuple[int, float]:
@@ -358,7 +358,7 @@ class ReversePourbaixDiagramComponent(MPComponent):
             Input(self.get_kwarg_id("stability_cutoff"), "value"),
         )
         def update_figure(
-            heatmap_json, show_water_lines, stability_cutoff_list
+            heatmap_json, show_water_lines, stability_cutoff
         ):  # some options ignored for now
             if not heatmap_json:
                 raise PreventUpdate
@@ -370,6 +370,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
 
             return self.get_heatmap_figure(
                 heatmap_data,
-                stability_cutoff=self._resolve_cutoff(stability_cutoff_list[0]),
+                stability_cutoff=self._resolve_cutoff(stability_cutoff),
                 show_water_lines=bool(show_water_lines),
             )
