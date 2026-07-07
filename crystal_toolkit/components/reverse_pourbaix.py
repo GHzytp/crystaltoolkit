@@ -358,7 +358,7 @@ class ReversePourbaixDiagramComponent(MPComponent):
             Input(self.get_kwarg_id("stability_cutoff"), "value"),
         )
         def update_figure(
-            heatmap_json, show_water_lines, stability_cutoff
+            heatmap_json, show_water_lines, stability_cutoff_list
         ):  # some options ignored for now
             if not heatmap_json:
                 raise PreventUpdate
@@ -370,6 +370,6 @@ class ReversePourbaixDiagramComponent(MPComponent):
 
             return self.get_heatmap_figure(
                 heatmap_data,
-                stability_cutoff=self._resolve_cutoff(stability_cutoff),
+                stability_cutoff=self._resolve_cutoff(stability_cutoff_list[0]),
                 show_water_lines=bool(show_water_lines),
             )
