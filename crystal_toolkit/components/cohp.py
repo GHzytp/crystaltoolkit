@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 import dash_mp_components as mpc
 from dash.dependencies import Component, Input, Output
 from dash.exceptions import PreventUpdate
-from lobsterpy.plotting import InteractiveCohpPlotter
 from plotly.subplots import make_subplots
 from pymatgen.electronic_structure.dos import LobsterCompleteDos
 
@@ -35,6 +34,12 @@ if TYPE_CHECKING:
     import plotly.graph_objects as go
     from pymatgen.core import Structure
     from pymatgen.io.lobster import Charge, Icohplist
+    
+
+try:
+    from lobsterpy.plotting import InteractiveCohpPlotter
+except ImportError:
+    InteractiveCohpPlotter = None
 
 warnings.filterwarnings("ignore")
 
@@ -53,6 +58,11 @@ class CohpAndDosComponent(MPComponent):
         id: str | None = None,
         **kwargs,
     ) -> None:
+        if InteractiveCohpPlotter is None:
+            raise ImportError(
+                "`lobsterpy` must be installed to use the "
+                " CohpAndDosComponent `crystal_toolkit` component."
+            )
         super().__init__(
             id=id,
             default_data={

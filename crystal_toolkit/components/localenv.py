@@ -281,7 +281,7 @@ def _perform_lobsterenv_analysis(
             # Add the charges as a site property (hover text)
             mol = mol.add_site_property("charge", charges)
 
-            mg = MoleculeGraph.with_empty_graph(
+            mg = MoleculeGraph.from_empty_graph(
                 molecule=mol,
                 name="bond_strength",
                 edge_weight_name=edge_weight_name,
@@ -1270,7 +1270,7 @@ class LocalEnvironmentPanel(PanelComponent):
                     [struct[index], *lse.neighbors_sets[index][0].neighb_sites]
                 )
                 mol = mol.get_centered_molecule()
-                mg = MoleculeGraph.with_empty_graph(molecule=mol)
+                mg = MoleculeGraph.from_empty_graph(molecule=mol)
                 for i in range(1, len(mol)):
                     mg.add_edge(0, i)
 
