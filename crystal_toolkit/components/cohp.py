@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     import plotly.graph_objects as go
     from pymatgen.core import Structure
     from pymatgen.io.lobster import Charge, Icohplist
-    
+
 
 try:
     from lobsterpy.plotting import InteractiveCohpPlotter
