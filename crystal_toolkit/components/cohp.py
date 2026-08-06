@@ -11,7 +11,8 @@ from plotly.subplots import make_subplots
 from pymatgen.electronic_structure.dos import LobsterCompleteDos
 
 from crystal_toolkit.components.bandstructure import BandstructureAndDosComponent
-from crystal_toolkit.components.localenv import (
+from crystal_toolkit.components.lobsterenv import (
+    _get_lobsterenv_controls,
     _get_lobsterenv_inputs,
     _perform_lobsterenv_analysis,
 )
@@ -19,7 +20,6 @@ from crystal_toolkit.core.mpcomponent import MPComponent
 from crystal_toolkit.core.panelcomponent import PanelComponent
 from crystal_toolkit.helpers.layouts import (
     H4,
-    H5,
     Column,
     Columns,
     Loading,
@@ -126,78 +126,9 @@ class CohpAndDosComponent(MPComponent):
         )
 
         # LobsterEnv-specific controls
-        lobsterenv_state = {
-            "lobsterenv-analysis-mode": "all",
-            "perc_strength_icohp": 0.15,
-            "which_charge": "Mulliken",
-            "adapt_extremum": True,
-            "noise_cutoff": 1e-3,
-        }
-
-        lobsterenv_analysis_options = [
-            {"label": "all", "value": "all"},
-            {"label": "cation-anion", "value": "cation-anion"},
-        ]
-
-        lobsterenv_analysis_mode = self.get_choice_input(
-            kwarg_label="lobsterenv-analysis-mode",
-            state=lobsterenv_state,
-            label="Analysis mode",
-            help_str="Choose whether to analyze all bonds or only cation-anion bonds",
-            options=lobsterenv_analysis_options,
-        )
-
-        charge_type_options = [
-            {"label": "Mulliken", "value": "Mulliken"},
-            {"label": "Loewdin", "value": "Loewdin"},
-        ]
-
-        charge_type = self.get_choice_input(
-            kwarg_label="which_charge",
-            state=lobsterenv_state,
-            label="Charge type",
-            help_str="Select the atomic charge type to use for the cation-anion classification",
-            options=charge_type_options,
-        )
-
-        icohp_cutoff = html.Div(
-            [
-                H5("ICOHP cutoff %"),
-                dcc.Slider(
-                    id=self.id("perc_strength_icohp"),
-                    min=0,
-                    max=1,
-                    step=0.01,
-                    value=0.15,
-                    marks={i: f"{i:.0%}" for i in [0, 0.25, 0.5, 0.75, 1]},
-                    tooltip={"placement": "bottom", "always_visible": True},
-                ),
-            ],
-            style={"width": "100%"},
-        )
-
-        adapt_extremum = self.get_bool_input(
-            label="Adapt extremum to additional condition",
-            kwarg_label="adapt_extremum",
-            state=lobsterenv_state,
-            help_str="If enabled, adapts the ICOHP extremum based on additional conditions (cation-anion mode)",
-        )
-
-        noise_cutoff = self.get_numerical_input(
-            label="Noise cutoff",
-            kwarg_label="noise_cutoff",
-            state=lobsterenv_state,
-            help_str="Noise cutoff threshold for filtering small bond strength values",
-            shape=(),
-            min=0.0,
-        )
-
-        lobsterenv_controls = Columns(
-            [
-                Column([lobsterenv_analysis_mode, charge_type], size=3),
-                Column([icohp_cutoff], size=3),
-                Column([adapt_extremum, noise_cutoff], size=3),
-            ]
+        lobsterenv_controls = _get_lobsterenv_controls(
+            self,
+            slider_label="ICOHP cutoff %",
         )
 
         # LobsterEnv analysis view container
@@ -410,6 +341,8 @@ class CohpAndDosComponent(MPComponent):
             fig.add_trace(trace, row=1, col=1)
 
         for trace in dos_traces:
+            if "Total" not in trace["name"]:
+                trace["name"] = "DOS: " + trace["name"]
             fig.add_trace(trace, row=1, col=2)
 
         # Update axes layout to match Crystal Toolkit's aesthetic
