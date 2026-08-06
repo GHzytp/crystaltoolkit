@@ -142,7 +142,8 @@ def _get_lobsterenv_controls(
             Column([lobsterenv_analysis_mode, charge_type], size=3),
             Column([icohp_cutoff], size=3),
             Column([adapt_extremum, noise_cutoff], size=3),
-        ]
+        ],
+        id=component.id("lobsterenv-controls"),
     )
 
 

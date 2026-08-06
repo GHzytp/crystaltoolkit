@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import dash
 from monty.serialization import loadfn
 
@@ -6,7 +8,9 @@ from crystal_toolkit.components.localenv import LocalEnvironmentPanel
 from crystal_toolkit.helpers.layouts import H3, Container
 from crystal_toolkit.settings import SETTINGS
 
-task_doc = loadfn("lobstertaskdoc.json")
+working_dir = Path(__file__).resolve().parent
+
+task_doc = loadfn(working_dir / "lobstertaskdoc.json")
 
 local_env_component = LocalEnvironmentPanel(
     default_data={
@@ -25,4 +29,4 @@ app = dash.Dash(assets_folder=SETTINGS.ASSETS_PATH, prevent_initial_callbacks=Fa
 ctc.register_crystal_toolkit(app, layout=layout)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8051)
+    app.run(debug=True, port=8050)

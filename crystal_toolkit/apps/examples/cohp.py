@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import dash
 from monty.serialization import loadfn
 
@@ -7,7 +9,9 @@ from crystal_toolkit.settings import SETTINGS
 
 # load example task doc with LOBSTER data
 
-task_doc = loadfn("lobstertaskdoc.json")
+working_dir = Path(__file__).resolve().parent
+
+task_doc = loadfn(working_dir / "lobstertaskdoc.json")
 
 # example layout to demonstrate content of component
 
@@ -34,4 +38,4 @@ app = dash.Dash(assets_folder=SETTINGS.ASSETS_PATH, prevent_initial_callbacks=Fa
 ctc.register_crystal_toolkit(app, layout=layout)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8051)
+    app.run(debug=True, port=8050)
