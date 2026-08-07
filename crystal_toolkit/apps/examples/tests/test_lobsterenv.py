@@ -30,12 +30,12 @@ def test_localenv_example_renders_lobsterenv_controls(dash_duo: DashDuo) -> None
                 if option.text.strip() == "LobsterEnv":
                     option.click()
                     time.sleep(5)
+                    dash_duo.wait_for_element("[id$='perc_strength_icohp']", timeout=30)
+                    dash_duo.wait_for_element("[id$='upload_data']", timeout=30)
+                    dash_duo.wait_for_element("[id$='lobsterenv-controls']", timeout=30)
+                    dash_duo.wait_for_element("[id$='lobsterenv_analysis']", timeout=30)
                     dash_duo.percy_snapshot("example_lobsterenv_on_load")
                     break
-    dash_duo.wait_for_element("[id$='perc_strength_icohp']", timeout=30)
-    dash_duo.wait_for_element("[id$='upload_data']", timeout=30)
-    dash_duo.wait_for_element("[id$='lobsterenv-controls']", timeout=30)
-    dash_duo.wait_for_element("[id$='lobsterenv_analysis']", timeout=30)
 
     _logs = dash_duo.get_logs()
     # TODO: get help with fixing this error
