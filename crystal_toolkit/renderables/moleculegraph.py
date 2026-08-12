@@ -40,7 +40,7 @@ def get_molecule_graph_scene(
         A Molecule Graph scene.
     """
     if visualize_bond_orders:
-        vis_mol_graph = MoleculeGraph.with_local_env_strategy(
+        vis_mol_graph = MoleculeGraph.from_local_env_strategy(
             self.molecule, OpenBabelNN()
         )
     else:

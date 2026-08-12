@@ -810,7 +810,7 @@ class LocalEnvironmentPanel(PanelComponent):
                     [struct[index], *lse.neighbors_sets[index][0].neighb_sites]
                 )
                 mol = mol.get_centered_molecule()
-                mg = MoleculeGraph.with_empty_graph(molecule=mol)
+                mg = MoleculeGraph.from_empty_graph(molecule=mol)
                 for i in range(1, len(mol)):
                     mg.add_edge(0, i)
 
