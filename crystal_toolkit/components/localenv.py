@@ -8,7 +8,6 @@ import dash_mp_components as mpc
 from dash import callback_context, dcc, html
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
-from monty.json import MontyDecoder
 from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import (
     SimplestChemenvStrategy,
 )
@@ -125,9 +124,9 @@ def _extract_structure_from_data(data):
         if "structure" in data:
             struct = data.get("structure")
             if struct and isinstance(struct, dict):
-                struct = MontyDecoder().process_decoded(struct)
+                struct = Structure.from_dict(struct)
             return struct
-        return MontyDecoder().process_decoded(data)
+        return Structure.from_dict(data)
 
     return data
 
