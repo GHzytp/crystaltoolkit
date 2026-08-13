@@ -996,19 +996,19 @@ class StructureMoleculeComponent(MPComponent):
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     if isinstance(input, Structure):
-                        graph = StructureGraph.with_local_env_strategy(
+                        graph = StructureGraph.from_local_env_strategy(
                             input, bonding_strategy
                         )
                     else:
-                        graph = MoleculeGraph.with_local_env_strategy(
+                        graph = MoleculeGraph.from_local_env_strategy(
                             input, bonding_strategy, reorder=False
                         )
             except Exception:
                 # for some reason computing bonds failed, so let's not have any bonds(!)
                 if isinstance(input, Structure):
-                    graph = StructureGraph.with_empty_graph(input)
+                    graph = StructureGraph.from_empty_graph(input)
                 else:
-                    graph = MoleculeGraph.with_empty_graph(input)
+                    graph = MoleculeGraph.from_empty_graph(input)
 
         return graph
 
