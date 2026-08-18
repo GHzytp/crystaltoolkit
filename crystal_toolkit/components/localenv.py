@@ -29,7 +29,13 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.util.string import unicodeify, unicodeify_species
 from sklearn.preprocessing import normalize
 
+from crystal_toolkit.components.lobsterenv import (
+    _get_lobsterenv_controls,
+    _get_lobsterenv_inputs,
+    _perform_lobsterenv_analysis,
+)
 from crystal_toolkit.components.structure import StructureMoleculeComponent
+from crystal_toolkit.components.upload import LobsterEnvUploadComponent
 from crystal_toolkit.core.legend import Legend
 from crystal_toolkit.core.panelcomponent import PanelComponent
 from crystal_toolkit.helpers.layouts import (
@@ -102,6 +108,29 @@ def _get_local_order_parameters(structure_graph, n):
     return None
 
 
+def _extract_structure_from_data(data):
+    """Extract structure from data, handling both simple structures and complex dicts.
+
+    Args:
+        data: Either a Structure/Molecule object or a dict containing structure key
+
+    Returns:
+        Structure or Molecule object
+    """
+    if not data:
+        return None
+
+    if isinstance(data, dict):
+        if "structure" in data:
+            struct = data.get("structure")
+            if struct and isinstance(struct, dict):
+                struct = Structure.from_dict(struct)
+            return struct
+        return Structure.from_dict(data)
+
+    return data
+
+
 class LocalEnvironmentPanel(PanelComponent):
     """A panel to analyze the local chemical environments in a crystal."""
 
@@ -111,6 +140,10 @@ class LocalEnvironmentPanel(PanelComponent):
         self.create_store(
             "display_options",
             initial_data={"color_scheme": "Jmol", "color_scale": None},
+        )
+        # Create LobsterEnv upload component
+        self.lobsterenv_upload = LobsterEnvUploadComponent(
+            id=self.id("lobsterenv_upload")
         )
 
     @property
@@ -137,6 +170,7 @@ class LocalEnvironmentPanel(PanelComponent):
             options=[
                 {"label": "ChemEnv", "value": "chemenv"},
                 {"label": "LocalEnv", "value": "localenv"},
+                {"label": "LobsterEnv", "value": "lobsterenv"},
                 {"label": "Bonding Graph", "value": "bondinggraph"},
                 {"label": "SOAP", "value": "soap"},
             ],
@@ -279,6 +313,41 @@ class LocalEnvironmentPanel(PanelComponent):
                         ),
                         html.Br(),
                         Loading(id=self.id("localenv_analysis")),
+                    ]
+                )
+
+            if algorithm == "lobsterenv":
+                description = (
+                    "The LobsterEnv algorithm is developed by George et al. to analyze "
+                    "local chemical environments based on the outputs of LOBSTER calculations. "
+                    "This analysis relies on the ICOHP values calculated by LOBSTER, which "
+                    "are a measure of bond strength. The local environment is determined by including all neighbors "
+                    "with ICOHP/ICOBI/ICOOP values stronger than a certain threshold. "
+                    "The threshold can be set as a percentage of the strongest ICOHP/ICOBI/ICOOP in the structure, and can be adjusted using the slider below. "
+                )
+
+                lobsterenv_controls = _get_lobsterenv_controls(
+                    self,
+                    slider_label="Bond strength cutoff %",
+                )
+
+                return html.Div(
+                    [
+                        cite_me(
+                            cite_text="How to cite LobsterEnv",
+                            doi="10.1002/cplu.202200123",
+                        ),
+                        html.Br(),
+                        dcc.Markdown(description),
+                        html.Br(),
+                        # html.H5("Upload LOBSTER Results"),
+                        self.lobsterenv_upload._sub_layouts["upload"],
+                        html.Br(),
+                        # html.H5("Analysis Parameters"),
+                        # html.Br(),
+                        lobsterenv_controls,
+                        html.Br(),
+                        Loading(id=self.id("lobsterenv_analysis")),
                     ]
                 )
 
@@ -554,7 +623,10 @@ class LocalEnvironmentPanel(PanelComponent):
                     "This feature will not work unless `dscribe` is installed on the server."
                 )
 
-            struct = self.from_data(struct)
+            struct = _extract_structure_from_data(struct)
+            if not struct:
+                raise PreventUpdate
+
             kwargs = self.reconstruct_kwargs_from_state(callback_context.inputs)
 
             # TODO: make sure is_int kwarg information is enforced so that int() conversion is unnecessary
@@ -610,7 +682,11 @@ class LocalEnvironmentPanel(PanelComponent):
                     "This feature will not work unless `dscribe` is installed on the server."
                 )
 
-            structs = {"input": self.from_data(struct)}
+            struct = _extract_structure_from_data(struct)
+            if not struct:
+                raise PreventUpdate
+
+            structs = {"input": struct}
             kwargs = self.reconstruct_kwargs_from_state(callback_context.inputs)
 
             elements = [str(el) for el in structs["input"].composition.elements]
@@ -705,6 +781,106 @@ class LocalEnvironmentPanel(PanelComponent):
             )
 
         @app.callback(
+            Output(self.id("lobsterenv_analysis"), "children"),
+            Input(self.id(), "data"),
+            Input(self.lobsterenv_upload.id(), "data"),
+            Input(self.id("perc_strength_icohp"), "value"),
+            Input(self.get_kwarg_id("lobsterenv-analysis-mode"), "value"),
+            Input(self.get_kwarg_id("which_charge"), "value"),
+            Input(self.get_kwarg_id("adapt_extremum"), "value"),
+            Input(self.get_kwarg_id("noise_cutoff"), "value"),
+        )
+        def update_lobsterenv_analysis(
+            data,
+            uploaded_data,
+            perc_strength_icohp,
+            analysis_mode,
+            which_charge,
+            adapt_extremum,
+            noise_cutoff,
+        ):
+            """Generate LobsterEnv local environment analysis."""
+            # Prioritize uploaded data over component data
+            if (
+                uploaded_data
+                and uploaded_data.get("obj_icohp")
+                and not uploaded_data.get("error")
+            ):
+                data = uploaded_data
+
+            if not data:
+                raise PreventUpdate
+
+            # Handle slider value
+            if isinstance(perc_strength_icohp, list):
+                perc_strength_icohp = (
+                    float(perc_strength_icohp[0]) if perc_strength_icohp else 0.15
+                )
+            else:
+                perc_strength_icohp = (
+                    float(perc_strength_icohp)
+                    if perc_strength_icohp is not None
+                    else 0.15
+                )
+
+            # Handle charge type
+            which_charge = (
+                which_charge[0]
+                if isinstance(which_charge, list)
+                else (which_charge or "Mulliken")
+            )
+
+            # Handle adapt_extremum
+            adapt_extremum = (
+                adapt_extremum[0]
+                if isinstance(adapt_extremum, list)
+                else (adapt_extremum if adapt_extremum is not None else True)
+            )
+
+            # Handle noise_cutoff
+            noise_cutoff = (
+                float(noise_cutoff[0])
+                if isinstance(noise_cutoff, list)
+                else (float(noise_cutoff) if noise_cutoff is not None else 1e-3)
+            )
+
+            try:
+                struct, obj_icohp, obj_charge = _get_lobsterenv_inputs(data)
+            except ValueError as e:
+                return mpc.Markdown(str(e))
+
+            if (
+                not isinstance(data, dict)
+                or "obj_icohp" not in data
+                or "obj_charge" not in data
+            ):
+                return mpc.Markdown(
+                    "LobsterEnv requires LOBSTER outputs (ICOHP + charge data). "
+                    "Please provide `obj_icohp` and `obj_charge` in the component data or upload LOBSTER files."
+                )
+
+            # Determine if we should only show cation-anion bonds
+            only_cation_anion = (
+                analysis_mode == "cation-anion"
+                if isinstance(analysis_mode, str)
+                else analysis_mode[0] == "cation-anion"
+            )
+
+            try:
+                return _perform_lobsterenv_analysis(
+                    struct,
+                    obj_icohp,
+                    obj_charge,
+                    perc_strength_icohp,
+                    which_charge,
+                    only_cation_anion,
+                    adapt_extremum,
+                    noise_cutoff,
+                )
+            except ValueError as e:
+                return mpc.Markdown(str(e))
+
+        @app.callback(
             Output(self.id("bondinggraph_analysis"), "children"),
             Input(self.id("graph"), "data"),
             Input(self.id("display_options"), "data"),
@@ -752,7 +928,10 @@ class LocalEnvironmentPanel(PanelComponent):
             if not struct:
                 raise PreventUpdate
 
-            struct = self.from_data(struct)
+            struct = _extract_structure_from_data(struct)
+            if not struct:
+                raise PreventUpdate
+
             kwargs = self.reconstruct_kwargs_from_state(callback_context.inputs)
             distance_cutoff = kwargs["distance_cutoff"]
             angle_cutoff = kwargs["angle_cutoff"]
